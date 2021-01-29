@@ -1,0 +1,13 @@
+name = "Aurora"
+uuid = "7e0f99ac-a6fe-4198-8809-f35fd52d95a1"
+authors = ["Nikos Ignatiadis <nikos.ignatiadis01@gmail.com> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1.5"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
