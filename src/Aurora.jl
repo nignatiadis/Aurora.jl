@@ -2,7 +2,6 @@ module Aurora
 
 using Reexport
 
-using InvertedIndices
 using LinearAlgebra
 using Statistics
 @reexport using StatsBase

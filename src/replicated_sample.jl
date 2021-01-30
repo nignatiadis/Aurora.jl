@@ -20,12 +20,39 @@ Statistics.std(Z::ReplicatedSample) = std(Z.Z)
 
 StatsBase.nobs(Z::ReplicatedSample) = length(Z.Z)
 
+function StatsBase.response(Z::ReplicatedSample, j::Integer)
+    Z.Z[j]
+end
 
+function design_row!(vec, Z::ReplicatedSample, j)
+    K = nobs(Z)
+    rank_j = Z.rank_idx[j]
+    if rank_j > 1
+        vec[1:(rank_j-1)] = Z.sorted_Z[1:(rank_j-1)]
+    end
+    if rank_j < K
+        vec[(rank_j):(K-1)] = Z.sorted_Z[(rank_j + 1):K]
+    end
+    vec
+end
 
 function design_response_row!(vec, Z::ReplicatedSample, j)
     vec[1] = 1.0
     K = nobs(Z)
-    vec[2:K] = Z.sorted_Z[Not(Z.rank_idx[j])]
-    vec[K+1] = Z.Z[j]
+    design_row!(view(vec, 2:K), Z, j)
+    vec[K+1] = StatsBase.response(Z, j)
     vec
+end
+
+function design_matrix!(matrix, Zs::AbstractVector{<:ReplicatedSample}, j)
+    for (i,Z) in enumerate(Zs)
+        design_row!(view(matrix, :, i), Z, j)
+    end
+    matrix
+end
+
+function design_matrix(Zs::AbstractVector{<:ReplicatedSample}, j)
+    n = length(Zs)
+    K = nobs(Zs[1])
+    design_matrix!(zeros(K-1,n), Zs, j)
 end

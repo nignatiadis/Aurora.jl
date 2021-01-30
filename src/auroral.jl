@@ -13,17 +13,24 @@ function StatsBase.fit(::Auroral, Zs::AbstractVector{<:ReplicatedSample})
     μs_mat = zeros(n,K)
 
     # See https://github.com/dmbates/CopenhagenEcon/blob/master/jmd/03-LinearAlgebra.jmd
-    chr = cholesky(zeros(K+1, K+1) + I)
     cache_vec = zeros(K+1)
+    cache_mat = zeros(K+1,n)
+    cache_cov_mat = zeros(K+1, K+1)
+
     βs = Vector{typeof(cache_vec)}(undef, K)
 
     for j in Base.OneTo(K)
-        fill!(chr.factors, 0)
+        fill!(cache_mat, 0)
+        fill!(cache_cov_mat, 0)
         fill!(cache_vec, 0)
-        for Z in Zs
-            design_response_row!(cache_vec, Z, j)
-            lowrankupdate!(chr, cache_vec)
+
+        for (i,Z) in enumerate(Zs)
+            design_response_row!(view(cache_mat, :, i), Z, j)
         end
+
+        mul!(cache_cov_mat, cache_mat, cache_mat')
+        chr = cholesky!(cache_cov_mat)
+
         RXX = UpperTriangular(view(chr.U, 1:K, 1:K))
         βs[j] = ldiv!(RXX, copy(chr.U[1:K, end]))
 
