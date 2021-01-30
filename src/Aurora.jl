@@ -1,5 +1,16 @@
 module Aurora
 
-# Write your package code here.
+using Reexport
+
+using InvertedIndices
+using LinearAlgebra
+using Statistics
+@reexport using StatsBase
+
+include("replicated_sample.jl")
+include("auroral.jl")
+
+export ReplicatedSample,
+       Auroral
 
 end
