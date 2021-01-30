@@ -12,6 +12,7 @@ function StatsBase.fit(::Auroral, Zs::AbstractVector{<:ReplicatedSample})
     any(nobs.(Zs) != K) || throw("All Zs should have the same number of replicates.")
     μs_mat = zeros(n,K)
 
+    # See https://github.com/dmbates/CopenhagenEcon/blob/master/jmd/03-LinearAlgebra.jmd
     chr = cholesky(zeros(K+1, K+1) + I)
     cache_vec = zeros(K+1)
     βs = Vector{typeof(cache_vec)}(undef, K)
