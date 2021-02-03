@@ -8,8 +8,6 @@ Base.@kwdef struct FittedAuroral{Ts, Ms, Ss} <: AbstractFittedAurora
     method
 end
 
-StatsBase.predict(fitted_auroral::FittedAuroral) = fitted_auroral.μs
-
 function StatsBase.fit(auroral::Auroral, Zs::AbstractVector{<:ReplicatedSample})
     K = nobs(Zs[1])
     n = length(Zs)

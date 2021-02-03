@@ -11,6 +11,7 @@ using Statistics
 
 abstract type AbstractAurora end
 abstract type AbstractFittedAurora end
+StatsBase.predict(fitted_aurora::AbstractFittedAurora) = fitted_aurora.μs
 
 include("replicated_sample.jl")
 include("auroral.jl")
