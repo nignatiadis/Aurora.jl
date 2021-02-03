@@ -13,7 +13,7 @@ end
 function StatsBase.fit(aurora::AuroraKNN, Zs::AbstractVector{<:ReplicatedSample})
     K = nobs(Zs[1]) # todo check homoskedastic
     n = length(Zs)
-    kKNN  = aurora.kKNN
+    kKNN  = min(aurora.kKNN, n-2)
     loocv = aurora.loocv
 
     any(nobs.(Zs) != K) || throw("All Zs should have the same number of replicates.")
