@@ -1,11 +1,11 @@
 struct Auroral <: AbstractAurora end
 
-Base.@kwdef struct FittedAuroral{Ts, Ms, Ss} <: AbstractFittedAurora
+Base.@kwdef struct FittedAuroral{A, Ts, Ms, Ss} <: AbstractFittedAurora
     βs::Ts
     βs_list::Vector{Ts}
     μs_mat::Ms
     μs::Ss
-    method
+    method::A
 end
 
 function StatsBase.fit(auroral::Auroral, Zs::AbstractVector{<:ReplicatedSample})
@@ -82,4 +82,38 @@ function StatsBase.fit(auroral::CoeyCunningham, Zs::AbstractVector{<:ReplicatedS
     FittedAuroral(βs = βs, βs_list = βs_list,
                 μs = μs, μs_mat = μs_mat,
                 method = auroral)
+end
+
+
+# Plotting
+
+@recipe function f(aur::Aurora.FittedAuroral{Auroral}; stick_color=:purple, x_nudge = 0.0)
+
+    βs = aur.βs
+    K = length(βs) - 1
+
+    xs = (0:K) .+ x_nudge
+
+    xlabs = ["Int."; [L"X^{(%$k)}" for k in Base.OneTo(K)]]
+
+	background_color_legend --> :transparent
+	foreground_color_legend --> :transparent
+    grid --> nothing
+    label --> ""
+    linewidth --> 2.5
+    seriestype := :sticks
+    seriescolor := stick_color
+
+    @series begin
+        seriestype := :scatter
+        seriescolor := stick_color
+        markerstrokewidth := 0
+        markersize :=5
+        label := ""
+        xs, βs
+    end
+
+    xticks := (xs, xlabs)
+    yguide --> L"\hat{\beta}"
+    xs, βs
 end

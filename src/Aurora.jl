@@ -2,8 +2,10 @@ module Aurora
 
 using Reexport
 
+using LaTeXStrings
 using LinearAlgebra
 using NearestNeighbors
+using RecipesBase
 
 using Statistics
 @reexport using StatsBase
