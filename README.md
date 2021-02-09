@@ -8,6 +8,16 @@ Julia implementation of
 
 > Ignatiadis, N., Saha, S., Sun D. L., & Muralidharan, O. (2019).  **Empirical Bayes mean estimation with nonparametric errors via order statistic regression.** [[arXiv]](https://arxiv.org/abs/1911.05970)
 
+## Installation
+
+The package is available on the Julia registry, and may be installed as follows:
+
+```julia
+using Pkg
+Pkg.add("Aurora")
+```
+
+## Example usage
 
 Example code for Auroral (Aurora with linear regression) and AuroraKNN (Aurora with k-Nearest Neighbor regression)
 ```julia
