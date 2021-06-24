@@ -4,6 +4,7 @@ using Reexport
 
 using LaTeXStrings
 using LinearAlgebra
+using MultivariateStats
 using NearestNeighbors
 using RecipesBase
 

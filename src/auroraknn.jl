@@ -1,6 +1,26 @@
+"""
+    AuroraKNN(;kKNN=1000, loocv=true, tree=KDTree,
+               pca=false, pca_dimension=false)
+
+Aurora with `k`-Nearest neighbors.  If `looc=false`, then `k` is chosen equal to `kKNN`,
+while if `loocv=true`, then `k` is selected for each held-out replicate by
+Leave-One-Out Cross-validation among the choices 1,...`,kKNN`.
+
+`tree` describes the nearest neighbor computation strategy. The following options are
+available: `:kdtree`, `:balltree` and `:brutetree` from the `NearestNeighbors.jl` package.
+
+If `pca=true`, a dimension reduction strategy is employed to find nearest neighbors using
+PCA (principal component analysis). For each held-out replicate, the order statistics
+are projected into the principal component subspace of dimension `pca_dimension`. Note that
+in this case, the resulting nearest neighbors may only be interpreted as approximate
+nearest neighbors.
+"""
 Base.@kwdef struct AuroraKNN <: AbstractAurora
     kKNN::Int = 1000
     loocv::Bool = true
+    tree::Symbol = :kdtree
+    pca::Bool = false
+    pca_dimension::Int = 10
 end
 
 Base.@kwdef struct FittedAuroraKNN{Ms, Ss} <: AbstractFittedAurora
@@ -11,15 +31,28 @@ Base.@kwdef struct FittedAuroraKNN{Ms, Ss} <: AbstractFittedAurora
 end
 
 function StatsBase.fit(aurora::AuroraKNN, Zs::AbstractVector{<:ReplicatedSample})
-    K = nobs(Zs[1]) # todo check homoskedastic
+    K = nobs(Zs[1])
+    any(nobs.(Zs) != K) || throw("All Zs should have the same number of replicates.")
+
     n = length(Zs)
     kKNN  = min(aurora.kKNN, n-2)
     loocv = aurora.loocv
+    tree_symbol = aurora.tree
 
-    any(nobs.(Zs) != K) || throw("All Zs should have the same number of replicates.")
+    if tree_symbol == :kdtree
+        tree = KDTree
+    elseif tree_symbol == :balltree
+        tree = BallTree
+    elseif tree_symbol == :brutetree
+        tree = BruteTree
+    else
+        throw("Nearest neighbor strategy chosen is not available.")
+    end
+
+    pca = aurora.pca && aurora.pca_dimension < K-1
 
     μs_mat = zeros(n,K)
-    cache_mat = zeros(K-1,n)
+    cache_mat = zeros(K-1, n)
     cache_Y = zeros(n)
 
     if loocv
@@ -34,10 +67,16 @@ function StatsBase.fit(aurora::AuroraKNN, Zs::AbstractVector{<:ReplicatedSample}
         design_matrix!(cache_mat, Zs, j)
         cache_Y[:] = StatsBase.response.(Zs, j)
 
-        kdd = KDTree(cache_mat)
-        _idxs,_dists = knn(kdd, cache_mat, kKNN, loocv);
+        if !pca
+            kdd = tree(cache_mat)
+            _idxs,_dists = knn(kdd, cache_mat, kKNN, loocv);
+        else
+            pca_fit = fit(PCA, cache_mat; maxoutdim=aurora.pca_dimension, pratio=1)
+            pca_projected_X = transform(pca_fit, cache_mat)
+            kdd = tree(pca_projected_X)
+            _idxs,_dists = knn(kdd, pca_projected_X, kKNN, loocv);
+        end
 
-        #return (kdd = kdd, idxs= _idxs, dists=_dists, cache_Y = cache_Y)
         if loocv
             for i in Base.OneTo(n)
                 cumsum!(view(cache_knn, :, i), view(cache_Y, _idxs[i]))
