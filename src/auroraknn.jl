@@ -7,7 +7,8 @@ while if `loocv=true`, then `k` is selected for each held-out replicate by
 Leave-One-Out Cross-validation among the choices 1,...`,kKNN`.
 
 `tree` describes the nearest neighbor computation strategy. The following options are
-available: `:kdtree`, `:balltree` and `:brutetree` from the `NearestNeighbors.jl` package.
+available: `:auto`, as well as ,
+`:kdtree`, `:balltree` and `:brutetree` from the `NearestNeighbors.jl` package.
 
 If `pca=true`, a dimension reduction strategy is employed to find nearest neighbors using
 PCA (principal component analysis). For each held-out replicate, the order statistics
@@ -18,7 +19,7 @@ nearest neighbors.
 Base.@kwdef struct AuroraKNN <: AbstractAurora
     kKNN::Int = 1000
     loocv::Bool = true
-    tree::Symbol = :kdtree
+    tree::Symbol = :auto
     pca::Bool = false
     pca_dimension::Int = 10
 end
@@ -38,6 +39,10 @@ function StatsBase.fit(aurora::AuroraKNN, Zs::AbstractVector{<:ReplicatedSample}
     kKNN  = min(aurora.kKNN, n-2)
     loocv = aurora.loocv
     tree_symbol = aurora.tree
+
+    if tree_symbol == :auto
+        tree_symbol = K <= 12 ? :kdtree : :brutetree
+    end
 
     if tree_symbol == :kdtree
         tree = KDTree
