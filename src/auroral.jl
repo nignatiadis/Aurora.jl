@@ -1,3 +1,8 @@
+"""
+    Auroral()
+
+Aurora with linear regression.
+"""
 struct Auroral <: AbstractAurora end
 
 Base.@kwdef struct FittedAuroral{A, Ts, Ms, Ss} <: AbstractFittedAurora

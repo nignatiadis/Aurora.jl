@@ -4,7 +4,7 @@
 
 Aurora with `k`-Nearest neighbors.  If `looc=false`, then `k` is chosen equal to `kKNN`,
 while if `loocv=true`, then `k` is selected for each held-out replicate by
-Leave-One-Out Cross-validation among the choices 1,...`,kKNN`.
+Leave-One-Out Cross-validation among the choices 1,...,`kKNN`.
 
 `tree` describes the nearest neighbor computation strategy. The following options are
 available: `:auto`, as well as ,
